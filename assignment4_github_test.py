@@ -3,13 +3,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.expected_conditions import visibility_of_element_located
-from selenium.webdriver.edge.service import Service
 from selenium.webdriver.edge.options import Options
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
+
+import logging
+logging.basicConfig(filename="test_report.log", level=logging.INFO, format="%(asctime)s - %(message)s")
+
+USERNAME = "sadershape"
+PASSWORD = "damir231564"
 
 options = Options()
 options.add_argument("--start-maximized")
@@ -18,40 +20,64 @@ driver.get("https://github.com/login")
 
 driver.implicitly_wait(10)
 
-driver.find_element(By.ID, "login_field").send_keys("sadershape")
-driver.find_element(By.ID, "password").send_keys("damir231564")
+logging.info("Navigated to GitHub login page.")
+time.sleep(2)  
+
+driver.find_element(By.ID, "login_field").send_keys(USERNAME)
+driver.find_element(By.ID, "password").send_keys(PASSWORD)
 driver.find_element(By.NAME, "commit").click()
+time.sleep(3)  
 
 try:
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.XPATH, "//summary[@aria-label='View profile and more']"))
+    WebDriverWait(driver, 20).until(
+        EC.visibility_of_element_located((By.XPATH, "//button[@aria-label='Open user navigation menu']"))
     )
-    print("Login successful.")
+    logging.info("Login successful.")
 except TimeoutException:
-    print("Login failed or took too long.")
+    logging.error("Login failed.")
+    driver.save_screenshot("debug_login_failed.png")
+    driver.quit()
+    exit()
 
-profile_icon = driver.find_element(By.XPATH, "//summary[@aria-label='View profile and more']")
+profile_button = WebDriverWait(driver, 20).until(
+    EC.visibility_of_element_located((By.XPATH, "//button[@aria-label='Open user navigation menu']"))
+)
 actions = ActionChains(driver)
-actions.move_to_element(profile_icon).perform()
-
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+actions.move_to_element(profile_button).click().perform()
+logging.info("Profile menu opened successfully.")
+time.sleep(2) 
 
 wait = WebDriverWait(driver, 20, poll_frequency=2, ignored_exceptions=[NoSuchElementException])
-settings_link = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@href='/settings/profile']")))
+side_menu = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'prc-Dialog-Dialog-luvDS')]")))
+time.sleep(2)  
+
+settings_link = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.XPATH, "//a[@href='/settings/profile']"))
+)
 settings_link.click()
+logging.info("Navigated to Settings successfully.")
+time.sleep(3) 
 
 driver.get("https://www.selenium.dev/selenium/web/web-form.html")
-select_element = driver.find_element(By.NAME, "my-select")
-select = Select(select_element)
-select.select_by_visible_text("Two")
+logging.info("Navigated to Selenium test page.")
+
+WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.TAG_NAME, "body"))
+)  
+
+time.sleep(2)  
 
 try:
-    assert "GitHub" in driver.title
-    print("[PASS] Title contains 'GitHub'")
-except AssertionError:
-    print("[FAIL] Title does not contain 'GitHub'")
+    select_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.NAME, "my-select"))
+    )
+    select = Select(select_element)
+    select.select_by_visible_text("Two")
+    logging.info("Dropdown selection successful.")
+except TimeoutException:
+    logging.error("Dropdown selection failed.")
 
-time.sleep(3)
+
+# ✅ Test Report: Save logs & ensure cleanup
+logging.info("Test execution completed. Closing browser.")
 driver.quit()
