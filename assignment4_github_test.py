@@ -18,8 +18,8 @@ driver.get("https://github.com/login")
 
 driver.implicitly_wait(10)
 
-driver.find_element(By.ID, "login_field").send_keys("your_username")
-driver.find_element(By.ID, "password").send_keys("your_password")
+driver.find_element(By.ID, "login_field").send_keys("sadershape")
+driver.find_element(By.ID, "password").send_keys("damir231564")
 driver.find_element(By.NAME, "commit").click()
 
 try:
