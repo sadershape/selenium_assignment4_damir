@@ -1,0 +1,30 @@
+name: Run Selenium Test
+
+on: push  
+jobs:
+  selenium-test:
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install selenium python-dotenv
+
+      - name: Run Selenium script
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: python github_test.py
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test_report.log
