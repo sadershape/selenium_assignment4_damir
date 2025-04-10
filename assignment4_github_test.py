@@ -6,12 +6,13 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.edge.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
+import os  
 
 import logging
 logging.basicConfig(filename="test_report.log", level=logging.INFO, format="%(asctime)s - %(message)s")
 
-USERNAME = "sadershape"
-PASSWORD = "damir231564"
+USERNAME = os.getenv("USERNAME")  
+PASSWORD = os.getenv("PASSWORD")  
 
 options = Options()
 options.add_argument("--start-maximized")
@@ -78,6 +79,5 @@ except TimeoutException:
     logging.error("Dropdown selection failed.")
 
 
-# ✅ Test Report: Save logs & ensure cleanup
 logging.info("Test execution completed. Closing browser.")
 driver.quit()
